@@ -445,6 +445,40 @@ private:
 
     // #define ValveServo_PWM 14         // Valve Servo
 
+class PinMapOSRStepper : public PinMapOSR {
+public:
+    static PinMapOSRStepper* getInstance()
+    {
+        static PinMapOSRStepper instance(DeviceType::OSR, BoardType::DEVKIT);
+        return &instance;
+    }
+
+    int8_t rightStep() const { return m_rightStep; }
+    void setRightStep(const int8_t &pin) { m_rightStep = pin; }
+
+    int8_t rightDir() const { return m_rightDir; }
+    void setRightDir(const int8_t &pin) { m_rightDir = pin; }
+
+    int8_t leftStep() const { return m_leftStep; }
+    void setLeftStep(const int8_t &pin) { m_leftStep = pin; }
+
+    int8_t leftDir() const { return m_leftDir; }
+    void setLeftDir(const int8_t &pin) { m_leftDir = pin; }
+
+    int8_t stepperEnable() const { return m_stepperEnable; }
+    void setStepperEnable(const int8_t &pin) { m_stepperEnable = pin; }
+
+protected:
+    PinMapOSRStepper(DeviceType deviceType, BoardType boardType) : PinMapOSR(deviceType, boardType) {}
+private:
+    int8_t m_rightStep    = RIGHT_STEP_PIN_DEFAULT;
+    int8_t m_rightDir     = RIGHT_DIR_PIN_DEFAULT;
+    int8_t m_leftStep     = LEFT_STEP_PIN_DEFAULT;
+    int8_t m_leftDir      = LEFT_DIR_PIN_DEFAULT;
+    int8_t m_stepperEnable = STEPPER_EN_PIN_DEFAULT;
+    void overideDefaults() override {}
+};
+
 class PinMapSR6 : public PinMapOSR {
 public:
     static PinMapSR6* getInstance()

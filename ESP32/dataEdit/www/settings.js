@@ -52,7 +52,8 @@ const TCodeVersion = {
 const latestTCodeVersion = TCodeVersion.V3;
 const MotorType = {
     Servo: 0,
-    BLDC: 1
+    BLDC: 1,
+    Stepper: 2
 };
 const ModuleType = {
     WROOM32: 0,
@@ -1084,6 +1085,8 @@ function toggleBuildOptions() {
 function toggleMotorTypeOptions() {
     if(systemInfo.motorType === MotorType.Servo) {
         Utils.toggleControlVisibilityByClassName('servoOnly', true);
+    } else if(systemInfo.motorType === MotorType.Stepper) {
+        Utils.toggleControlVisibilityByClassName('stepperOnly', true);
     } else {
         Utils.toggleControlVisibilityByClassName('BLDCOnly', true);
     }
