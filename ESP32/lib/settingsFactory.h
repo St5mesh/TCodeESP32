@@ -799,6 +799,14 @@ public:
                 return false;
             }
         }
+        if(motorType == MotorType::Stepper)
+        {
+            if (boardType == BoardType::CRIMZZON || boardType == BoardType::ISAAC || boardType == BoardType::SSR1PCB)
+            {
+                LogHandler::error(m_TAG, "[changeBoardType] Invalid board type for stepper motor");
+                return false;
+            }
+        }
         if(boardType == BoardType::CRIMZZON || boardType == BoardType::ISAAC) 
         {
             setValue(DEVICE_TYPE, DeviceType::SR6);
@@ -836,6 +844,14 @@ public:
             if (newType != DeviceType::SSR1)
             {
                 LogHandler::error(m_TAG, "[changeDeviceType] Invalid device type (%ld) for current motor. Valid device types are %s", value, DEVICE_TYPES_HELP);
+                return false;
+            }
+        }
+        else if(motorType == MotorType::Stepper)
+        {
+            if (newType != DeviceType::OSR)
+            {
+                LogHandler::error(m_TAG, "[changeDeviceType] Stepper motor only supports OSR device type. Valid device types are %s", DEVICE_TYPES_HELP);
                 return false;
             }
         }
@@ -939,6 +955,10 @@ private:
             {LEFT_UPPER_SERVO_ZERO, "Left upper servo zero", "The zero calibration for the left upper servo", SettingType::Number, LEFT_UPPER_SERVO_ZERO_DEFAULT, RestartRequired::YES, {SettingProfile::Servo}},
             {PITCH_LEFT_SERVO_ZERO, "Pitch left servo zero", "The zero calibration for the pitch left servo", SettingType::Number, PITCH_LEFT_SERVO_ZERO_DEFAULT, RestartRequired::YES, {SettingProfile::Servo}},
             {PITCH_RIGHT_SERVO_ZERO, "Pitch right servo zero", "The zero calibration for the pitch right servo", SettingType::Number, PITCH_RIGHT_SERVO_ZERO_DEFAULT, RestartRequired::YES, {SettingProfile::Servo}}
+#elif MOTOR_TYPE == 2
+            ,{STEPPER_ACCELERATION, "Stepper acceleration", "Acceleration in steps/s^2 for the OSR stepper motors", SettingType::Number, (int)STEPPER_ACCELERATION_DEFAULT, RestartRequired::YES, {SettingProfile::Servo}},
+            {STEPPER_MAX_SPEED, "Stepper max speed", "Maximum speed in steps/s for the OSR stepper motors", SettingType::Number, (int)STEPPER_MAX_SPEED_DEFAULT, RestartRequired::YES, {SettingProfile::Servo}},
+            {STEPPER_STEP_RANGE, "Stepper step range", "Half the total step range for the OSR arm (steps from centre)", SettingType::Number, STEPPER_STEP_RANGE_DEFAULT, RestartRequired::YES, {SettingProfile::Servo}}
 #endif
             ,{TWIST_SERVO_ZERO, "Twist servo zero", "The zero calibration for the twist servo", SettingType::Number, TWIST_SERVO_ZERO_DEFAULT, RestartRequired::YES, {SettingProfile::Servo}},
             {VALVE_SERVO_ZERO, "Valve servo zero", "The zero calibration for the valve servo", SettingType::Number, VALVE_SERVO_ZERO_DEFAULT, RestartRequired::YES, {SettingProfile::Servo}},
@@ -1041,6 +1061,14 @@ private:
             {BLDC_PWMCHANNEL1_PIN, "PWM channel1 PIN", "Pin for the BLDC PWM 1", SettingType::Number, BLDC_PWMCHANNEL1_PIN_DEFAULT, RestartRequired::YES, {SettingProfile::Bldc, SettingProfile::Pin, SettingProfile::PWM}},
             {BLDC_PWMCHANNEL2_PIN, "PWM channel2 PIN", "Pin for the BLDC PWM 2", SettingType::Number, BLDC_PWMCHANNEL2_PIN_DEFAULT, RestartRequired::YES, {SettingProfile::Bldc, SettingProfile::Pin, SettingProfile::PWM}},
             {BLDC_PWMCHANNEL3_PIN, "PWM channel3 PIN", "Pin for the BLDC PWM 3", SettingType::Number, BLDC_PWMCHANNEL3_PIN_DEFAULT, RestartRequired::YES, {SettingProfile::Bldc, SettingProfile::Pin, SettingProfile::PWM}}
+            // OSR Stepper (MKS SERVO42C)
+            #if MOTOR_TYPE == 2
+            ,{RIGHT_STEP_PIN, "Right stepper STEP PIN", "Pin for right stepper STEP signal", SettingType::Number, RIGHT_STEP_PIN_DEFAULT, RestartRequired::YES, {SettingProfile::Servo, SettingProfile::Pin}}
+            ,{RIGHT_DIR_PIN, "Right stepper DIR PIN", "Pin for right stepper DIR signal", SettingType::Number, RIGHT_DIR_PIN_DEFAULT, RestartRequired::YES, {SettingProfile::Servo, SettingProfile::Pin}}
+            ,{LEFT_STEP_PIN, "Left stepper STEP PIN", "Pin for left stepper STEP signal", SettingType::Number, LEFT_STEP_PIN_DEFAULT, RestartRequired::YES, {SettingProfile::Servo, SettingProfile::Pin}}
+            ,{LEFT_DIR_PIN, "Left stepper DIR PIN", "Pin for left stepper DIR signal", SettingType::Number, LEFT_DIR_PIN_DEFAULT, RestartRequired::YES, {SettingProfile::Servo, SettingProfile::Pin}}
+            ,{STEPPER_EN_PIN, "Stepper EN PIN", "Shared enable pin for both stepper drivers (active LOW)", SettingType::Number, STEPPER_EN_PIN_DEFAULT, RestartRequired::YES, {SettingProfile::Servo, SettingProfile::Pin}}
+            #endif
             #if CONFIG_IDF_TARGET_ESP32
             ,{ESP_H_TIMER0_FREQUENCY, "High timer 0 frequency", "Frequency for the high timer 0", SettingType::Number, ESP_TIMER_FREQUENCY_DEFAULT, RestartRequired::YES, {SettingProfile::Timer}}
             ,{ESP_H_TIMER1_FREQUENCY, "High timer 1 frequency", "Frequency for the high timer 1", SettingType::Number, ESP_TIMER_FREQUENCY_DEFAULT, RestartRequired::YES, {SettingProfile::Timer}}
@@ -1248,6 +1276,14 @@ private:
             default: {
                 bool ret = loadDefault(m_pinsFileInfo);
                 m_pinsFileInfo.initialized = true;
+#if MOTOR_TYPE == 2
+                // For stepper, write the default stepper pin values into the pin doc.
+                setValue(RIGHT_STEP_PIN, (int8_t)RIGHT_STEP_PIN_DEFAULT);
+                setValue(RIGHT_DIR_PIN,  (int8_t)RIGHT_DIR_PIN_DEFAULT);
+                setValue(LEFT_STEP_PIN,  (int8_t)LEFT_STEP_PIN_DEFAULT);
+                setValue(LEFT_DIR_PIN,   (int8_t)LEFT_DIR_PIN_DEFAULT);
+                setValue(STEPPER_EN_PIN, (int8_t)STEPPER_EN_PIN_DEFAULT);
+#endif
                 loadDefaultChannelsForDeviceType();
                 return saveToDisk(m_pinsFileInfo);
             }
@@ -1283,6 +1319,22 @@ private:
                 setValue(CASE_FAN_CHANNEL, (int8_t)ESPTimerChannelNum::LOW2_CH4);
                 setValue(HEATER_CHANNEL, (int8_t)ESPTimerChannelNum::LOW3_CH6);
 #elif CONFIG_IDF_TARGET_ESP32S3
+#if MOTOR_TYPE == 2
+                // Stepper mode: disable servo PWM on arm pins to avoid ledcWrite conflicts.
+                setValue(RIGHT_SERVO_PIN, -1);
+                setValue(RIGHT_SERVO_CHANNEL, (int8_t)ESPTimerChannelNum::NONE);
+                setValue(LEFT_SERVO_PIN, -1);
+                setValue(LEFT_SERVO_CHANNEL, (int8_t)ESPTimerChannelNum::NONE);
+                setValue(RIGHT_UPPER_SERVO_PIN, -1);
+                setValue(RIGHT_UPPER_SERVO_CHANNEL, (int8_t)ESPTimerChannelNum::NONE);
+                setValue(LEFT_UPPER_SERVO_PIN, -1);
+                setValue(LEFT_UPPER_SERVO_CHANNEL, (int8_t)ESPTimerChannelNum::NONE);
+                setValue(PITCH_LEFT_SERVO_CHANNEL, (int8_t)ESPTimerChannelNum::LOW1_CH2);
+                setValue(PITCH_RIGHTSERVO_PIN, -1);
+                setValue(PITCH_RIGHTSERVO_CHANNEL, (int8_t)ESPTimerChannelNum::NONE);
+                setValue(TWIST_SERVO_CHANNEL, (int8_t)ESPTimerChannelNum::LOW1_CH3);
+                setValue(VALVE_SERVO_CHANNEL, (int8_t)ESPTimerChannelNum::LOW2_CH5);
+#else
                 setValue(RIGHT_SERVO_CHANNEL, (int8_t)ESPTimerChannelNum::LOW0_CH0);
                 setValue(LEFT_SERVO_CHANNEL, (int8_t)ESPTimerChannelNum::LOW0_CH1);
                 setValue(RIGHT_UPPER_SERVO_CHANNEL, (int8_t)ESPTimerChannelNum::NONE);
@@ -1293,6 +1345,7 @@ private:
                 setValue(PITCH_RIGHTSERVO_CHANNEL, (int8_t)ESPTimerChannelNum::NONE);
                 setValue(TWIST_SERVO_CHANNEL, (int8_t)ESPTimerChannelNum::LOW1_CH3);
                 setValue(VALVE_SERVO_CHANNEL, (int8_t)ESPTimerChannelNum::LOW2_CH5);
+#endif
                 setValue(SQUEEZE_PIN, -1);
                 setValue(SQUEEZE_CHANNEL, (int8_t)ESPTimerChannelNum::NONE);
                 setValue(VIBE0_PIN, -1);
@@ -1571,8 +1624,11 @@ private:
                 m_currentPinMap = loadSR6Pins();
             break;
             default:
+#if MOTOR_TYPE == 2
+                m_currentPinMap = loadOSRStepperPins();
+#else
                 m_currentPinMap = loadOSRPins();
-
+#endif
         }
     }
 
@@ -1721,6 +1777,35 @@ private:
         pinMap->setPitchLeftChannel(channel);
         return pinMap;
     }
+
+    PinMapOSRStepper* loadOSRStepperPins()
+    {
+        if(!m_pinsFileInfo.initialized) {
+            LogHandler::error(m_TAG, "loadOSRStepperPins called before initialized");
+            return 0;
+        }
+        PinMapOSRStepper* pinMap = PinMapOSRStepper::getInstance();
+        loadCommonPins(pinMap);
+        int8_t pin = -1;
+        int8_t channel = -1;
+        // Inherit servo pin slots for pitch (still used via common helper).
+        getValue(PITCH_LEFT_SERVO_PIN, pin);
+        pinMap->setPitchLeft(pin);
+        getValue(PITCH_LEFT_SERVO_CHANNEL, channel);
+        pinMap->setPitchLeftChannel(channel);
+        // Stepper-specific pins.
+        getValue(RIGHT_STEP_PIN, pin);
+        pinMap->setRightStep(pin);
+        getValue(RIGHT_DIR_PIN, pin);
+        pinMap->setRightDir(pin);
+        getValue(LEFT_STEP_PIN, pin);
+        pinMap->setLeftStep(pin);
+        getValue(LEFT_DIR_PIN, pin);
+        pinMap->setLeftDir(pin);
+        getValue(STEPPER_EN_PIN, pin);
+        pinMap->setStepperEnable(pin);
+        return pinMap;
+    }
     
     PinMapSR6* loadSR6Pins() 
     {
@@ -1838,6 +1923,23 @@ private:
         setValue(LEFT_SERVO_CHANNEL, pinMap->leftServoChannel());
         setValue(PITCH_LEFT_SERVO_PIN, pinMap->pitchLeft());
         setValue(PITCH_LEFT_SERVO_CHANNEL, pinMap->pitchLeftChannel());
+        savePins();
+    }
+
+    void syncOSRStepperAndCommonPinsToDisk(const PinMapOSRStepper* pinMap)
+    {
+        if(!m_pinsFileInfo.initialized) {
+            LogHandler::error(m_TAG, "syncOSRStepperAndCommonPinsToDisk called before initialized");
+            return;
+        }
+        syncCommonPinsToDoc(pinMap);
+        setValue(PITCH_LEFT_SERVO_PIN, pinMap->pitchLeft());
+        setValue(PITCH_LEFT_SERVO_CHANNEL, pinMap->pitchLeftChannel());
+        setValue(RIGHT_STEP_PIN, pinMap->rightStep());
+        setValue(RIGHT_DIR_PIN, pinMap->rightDir());
+        setValue(LEFT_STEP_PIN, pinMap->leftStep());
+        setValue(LEFT_DIR_PIN, pinMap->leftDir());
+        setValue(STEPPER_EN_PIN, pinMap->stepperEnable());
         savePins();
     }
 

@@ -261,6 +261,22 @@
 #define CHANNEL_IS_SWITCH "isSwitch"
 #define CHANNEL_SR6_ONLY "sr6Only"
 
+// OSR Stepper (MKS SERVO42C)
+#define LEFT_STEP_PIN "LeftStep_PIN"
+#define LEFT_DIR_PIN "LeftDir_PIN"
+#define RIGHT_STEP_PIN "RightStep_PIN"
+#define RIGHT_DIR_PIN "RightDir_PIN"
+#define STEPPER_EN_PIN "StepperEnable_PIN"
+
+// Stepper motion parameters
+#define STEPPER_ACCELERATION "stepperAcceleration"
+#define STEPPER_MAX_SPEED "stepperMaxSpeed"
+#define STEPPER_STEP_RANGE "stepperStepRange"
+
+#define STEPPER_ACCELERATION_DEFAULT 40000UL
+#define STEPPER_MAX_SPEED_DEFAULT 20000UL
+#define STEPPER_STEP_RANGE_DEFAULT 1600
+
 #define ESP_H_TIMER0_FREQUENCY "ESP_H_TIMER0_FREQUENCY"
 #define ESP_H_TIMER1_FREQUENCY "ESP_H_TIMER1_FREQUENCY"
 #define ESP_H_TIMER2_FREQUENCY "ESP_H_TIMER2_FREQUENCY"

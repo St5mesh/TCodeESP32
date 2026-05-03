@@ -71,6 +71,8 @@ SOFTWARE. */
 #elif MOTOR_TYPE == 1
 #include "BLDCHandler0_3.h"
 #include "BLDCHandler0_4.h"
+#elif MOTOR_TYPE == 2
+#include "StepperHandler0_3.h"
 #endif
 
 #if WIFI_TCODE
@@ -837,6 +839,8 @@ void setup()
 	{
 		motorHandler = new BLDCHandler0_4();
 	}
+#elif MOTOR_TYPE == 2
+	motorHandler = new StepperHandler0_3();
 #else
 	LogHandler::error(TagHandler::Main, "Invalid motor type defined!");
 	return;

@@ -89,6 +89,14 @@
 #define PITCH_RIGHTSERVO_PIN_DEFAULT 14
 #define PITCH_RIGHTSERVO_CHANNEL_DEFAULT (int8_t)ESPTimerChannelNum::HIGH1_CH3
 
+// OSR Stepper (MKS SERVO42C). Reuses GPIO13/15 for STEP; GPIO12/2 for DIR; GPIO14 for shared EN.
+// In OSR mode the SR6-only pins are unused for PWM so there is no conflict.
+#define RIGHT_STEP_PIN_DEFAULT  13
+#define RIGHT_DIR_PIN_DEFAULT   12
+#define LEFT_STEP_PIN_DEFAULT   15
+#define LEFT_DIR_PIN_DEFAULT    2
+#define STEPPER_EN_PIN_DEFAULT  14
+
 // BLDC (SSR1)
 #define BLDC_ENCODER_PIN_DEFAULT 33
 #define BLDC_CHIPSELECT_PIN_DEFAULT 5

@@ -338,6 +338,9 @@ public:
         JsonObject SPI = encoderTypes.add<JsonObject>();
         SPI["name"] = "SPI";
         SPI["value"] = BLDCEncoderType::SPI;
+    #elif MOTOR_TYPE == 2
+        defaultDevice["name"] = "OSR (Stepper)";
+        defaultDevice["value"] = DeviceType::OSR;
     #endif
 
         JsonArray bleDeviceTypes = doc["bleDeviceTypes"].to<JsonArray>();
@@ -1978,6 +1981,8 @@ private:
        m_settingsFactory->setValue(MOTOR_TYPE_SETTING, (int)MotorType::Servo);
 #elif MOTOR_TYPE == 1
        m_settingsFactory->setValue(MOTOR_TYPE_SETTING, (int)MotorType::BLDC);
+#elif MOTOR_TYPE == 2
+       m_settingsFactory->setValue(MOTOR_TYPE_SETTING, (int)MotorType::Stepper);
 #endif
     }
 
