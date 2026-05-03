@@ -928,7 +928,8 @@ private:
         false, COMMON_SETTINGS_PATH, SettingFile::Common, JsonDocument(), 
         {
             {DEVICE_TYPE, "Type of device", "The surrent selected device", SettingType::Number, DEVICE_TYPE_DEFAULT, RestartRequired::YES, {SettingProfile::System}},
-            {MOTOR_TYPE_SETTING, "Motor type", "The current motor type", SettingType::Number, MOTOR_TYPE_DEFAULT, RestartRequired::YES, {SettingProfile::System}},            {BOARD_TYPE_SETTING, "Board type", "The physical board type", SettingType::Number, BOARD_TYPE_DEFAULT, RestartRequired::YES, {SettingProfile::System}},
+            {MOTOR_TYPE_SETTING, "Motor type", "The current motor type", SettingType::Number, MOTOR_TYPE_DEFAULT, RestartRequired::YES, {SettingProfile::System}},
+            {BOARD_TYPE_SETTING, "Board type", "The physical board type", SettingType::Number, BOARD_TYPE_DEFAULT, RestartRequired::YES, {SettingProfile::System}},
             {LOG_LEVEL_SETTING, "Log level", "The loglevel that will output", SettingType::Number, LOG_LEVEL_DEFAULT, RestartRequired::NO, {SettingProfile::System}},
             //{FULL_BUILD, "Full build", "", SettingType::Boolean, false, RestartRequired::YES, {SettingProfile::System}}, // Not sure what this was for. Doesnt appear to be used anywhere.
             {TCODE_VERSION_SETTING, "TCode version", "The version of TCode", SettingType::Number, TCODE_VERSION_DEFAULT, RestartRequired::YES, {SettingProfile::System}},
